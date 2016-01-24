@@ -5,6 +5,9 @@ int total_pulse_length = 0;           // used for smoothing tempo reads by getti
 float temp_bpm = 0;                   // the last read tempo value
 int tempo_counter = 0;                // how many times we have seen new tempo value
 
+volatile int pulse_length;
+volatile bool pulse_updated = false;
+
 /*
  * INITIALIZIATION
  */
@@ -18,15 +21,21 @@ void initSync() {
 }
 
 /**
- * We've received a voltage pulse
+ * Interrupt: We've received a voltage pulse
  */
 void inputBpmPulse() {
-  int pulse_length = time - last_bpm_up_time;
+  pulse_length = time - last_bpm_up_time;
   last_bpm_up_time = time;
-    
-  if (pulse_length > MIN_PULSE) {
-    float new_bpm = getBpmFromPulse(pulse_length);
-    updateBpm(new_bpm);
+  pulse_updated = true;
+}
+
+/**
+ * If we've received a new pulse length, update the Bpm
+ */
+void updateBpmFromPulse() {
+  if (pulse_updated) {
+    updateBpm(getBpmFromPulse(pulse_length));
+    pulse_updated = false;
   }
 }
 
@@ -43,8 +52,8 @@ void updateBpm(float new_bpm) {
         //we've seen this a few times now, consider it changed
         setBpm(temp_bpm);
 
-        // Assure output pulses happen in tandem with input pulses
-        setPulseStart((time % int(BPM_PULSE_MS / bpm) - MIN_PULSE));
+        // Assure output pulses happen in tandem with input pulses (-3ms gives it a little leeway)
+        setPulseStart(time % int(BPM_PULSE_MS / bpm) - 3);
         
         tempo_counter = 0;
       }
