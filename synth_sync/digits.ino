@@ -1,6 +1,4 @@
-int latchPin = 8;
-int clockPin = 12;
-int dataPin = 11;
+#include <SPI.h>
 
 byte dataCharacter;
 byte dataDigit;
@@ -8,10 +6,13 @@ byte dataArrayCharacter[10];
 byte dataArrayDigit[4];
 
 void initDigits() {
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
+  pinMode(DIGIT_LATCH_PIN, OUTPUT);
+  pinMode(DIGIT_CLOCK_PIN, OUTPUT);
+  pinMode(DIGIT_DATA_PIN, OUTPUT);
 
+  SPI.begin();
+  SPI.setBitOrder(LSBFIRST);
+  
   //ABCDEFGH, 1 = off
   dataArrayCharacter[0] = B00000011;
   dataArrayCharacter[1] = B10011111;
@@ -35,17 +36,11 @@ void outputString(String output) {
   for (int i = 0; i < 4; i++) {
     dataDigit = dataArrayDigit[i];
     dataCharacter = dataArrayCharacter[output.charAt(i) - '0'];
-    
-    digitalWrite(latchPin, 0);
-    shiftOut(dataPin, clockPin, LSBFIRST, dataDigit);   
-    shiftOut(dataPin, clockPin, LSBFIRST, dataCharacter);
-    digitalWrite(latchPin, 1);
-  }
 
-  // clear out register
-  digitalWrite(latchPin, 0);
-  shiftOut(dataPin, clockPin, LSBFIRST, B00000000);   
-  shiftOut(dataPin, clockPin, LSBFIRST, B00000000);
-  digitalWrite(latchPin, 1);
+    PORTB |= _BV(PB0); // latch pin HIGH
+    SPI.transfer(dataDigit);
+    SPI.transfer(dataCharacter);
+    PORTB &= ~_BV(PB0); // latch pin LOW
+  }
 }
 

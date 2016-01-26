@@ -70,14 +70,16 @@ void updateBpm(float new_bpm) {
 /**
  * Output bpm pulse on supplied pin
  */
-void outputBpmPulse(int pin) {
+void outputBpmPulse() {
   //todo: maybe switch this to use a 555?
   int pulse = time % int(BPM_PULSE_MS / output_bpm);
 
   if (pulse >= output_pulse_start && pulse <= MS_PER_PULSE + output_pulse_start) {
-    digitalWrite(pin, HIGH);
+//    digitalWrite(BPM_OUTPUT, HIGH);
+    PORTD |= _BV(PD4); // BPM Output pin HIGH
   } else {
-    digitalWrite(pin, LOW);
+//    digitalWrite(BPM_OUTPUT, LOW);
+    PORTD &= ~_BV(PD4); // BPM Output pin LOW
   }
 }
 

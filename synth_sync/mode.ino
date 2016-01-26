@@ -1,3 +1,28 @@
+void mode_loop() {
+  switch (mode) {
+    case MODE_MASTER:
+      detectSlaveMode();
+      break;
+
+    case MODE_SLAVE:
+      detectMasterMode();
+      break;
+  }
+}
+
+void mode_handleEncoderChange(int encoder_direction, int encoder_state) {
+  switch (mode) {
+    case MODE_MASTER:
+      // todo: if pushing down on the encoder, increment by tens
+      setBpm(bpm + encoder_direction);
+      break;
+
+    case MODE_SLAVE:
+      // todo
+      break;
+  }
+}
+
 /**
  * Determine if slave mode has started
  */

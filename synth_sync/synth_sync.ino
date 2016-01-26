@@ -9,7 +9,14 @@ const int MODE_MASTER = 0;            // Controlling the bpm
 const int MODE_SLAVE = 1;             // Getting bpm from input
 
 const int BPM_INPUT = 2;              // Pin for BPM voltage input
-const int BPM_OUTPUT = 4;             // Pin for BPM voltage output - channel 1
+const int BPM_OUTPUT = 4;             // D4 - Pin for BPM voltage output - channel 1
+
+const int ENCODER_PIN_A = 3;          // Pin for the rotary encoder
+const int ENCODER_PIN_B = 7;          // Pin for the rotary encoder
+
+const int DIGIT_LATCH_PIN = 8;        // B0 - Pin for the digit SR latch
+const int DIGIT_CLOCK_PIN = 13;       // Pin for the digit SR clock
+const int DIGIT_DATA_PIN = 11;        // Pin for the digit SR data
 
 const int SLAVE_TIMEOUT = 1000;       // How long to wait while not receiving input to switch to slave mode
 
@@ -26,33 +33,31 @@ float output_pulse_start;
 float output_speed = .25;
 
 void setup() {
-    pinMode(BPM_INPUT, INPUT);
-    pinMode(BPM_OUTPUT, OUTPUT);
+  pinMode(BPM_INPUT, INPUT);
+  pinMode(BPM_OUTPUT, OUTPUT);
 
-    Serial.begin(9600);
+  Serial.begin(9600);
 
-    setBpm(bpm);
-    initSync();
-    initMasterMode();
-    initDigits();
+  setBpm(bpm);
+  initSync();
+  initMasterMode();
+  initDigits();
 }
 
 void loop() {
-    time = millis();
-    updateBpmFromPulse();
-    outputBpmPulse(BPM_OUTPUT);
-        
-    switch (mode) {
-      case MODE_MASTER:
-        detectSlaveMode();
-        break;
+  time = millis();
+  
+  readEncoder();
 
-      case MODE_SLAVE:
-        detectMasterMode();
-        break;
-    }
+  //todo: only do this in slave mode once we're properly reading for connection
+  updateBpmFromPulse();
+  
+  outputString("1234");
+  
+  //todo: only do this if we have output
+  outputBpmPulse();
 
-      outputString("1234");
+  mode_loop();
 }
 
 /**
